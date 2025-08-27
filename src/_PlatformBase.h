@@ -136,28 +136,6 @@ int Stopwatch_ElapsedMS(cc_uint64 beg, cc_uint64 end) {
 	return (int)raw / 1000;
 }
 
-static CC_INLINE void SocketAddr_Set(cc_sockaddr* addr, const void* src, unsigned srcLen) {
-	if (srcLen > CC_SOCKETADDR_MAXSIZE) Process_Abort("Attempted to copy too large socket");
-
-	Mem_Copy(addr->data, src, srcLen);
-	addr->size = srcLen;
-}
-
-cc_result Socket_WriteAll(cc_socket socket, const cc_uint8* data, cc_uint32 count) {
-	cc_uint32 sent;
-	cc_result res;
-
-	while (count)
-	{
-		if ((res = Socket_Write(socket, data, count, &sent))) return res;
-		if (!sent) return ERR_END_OF_STREAM;
-
-		data  += sent;
-		count -= sent;
-	}
-	return 0;
-}
-
 
 /*########################################################################################################################*
 *-------------------------------------------------------Dynamic lib-------------------------------------------------------*
@@ -294,6 +272,28 @@ cc_result Platform_Decrypt(const void* data, int len, cc_string* dst) {
 /*########################################################################################################################*
 *---------------------------------------------------------Socket----------------------------------------------------------*
 *#########################################################################################################################*/
+static CC_INLINE void SocketAddr_Set(cc_sockaddr* addr, const void* src, unsigned srcLen) {
+	if (srcLen > CC_SOCKETADDR_MAXSIZE) Process_Abort("Attempted to copy too large socket");
+
+	Mem_Copy(addr->data, src, srcLen);
+	addr->size = srcLen;
+}
+
+cc_result Socket_WriteAll(cc_socket socket, const cc_uint8* data, cc_uint32 count) {
+	cc_uint32 sent;
+	cc_result res;
+
+	while (count)
+	{
+		if ((res = Socket_Write(socket, data, count, &sent))) return res;
+		if (!sent) return ERR_END_OF_STREAM;
+
+		data  += sent;
+		count -= sent;
+	}
+	return 0;
+}
+
 #ifdef CC_BUILD_NETWORKING
 /* Parses IPv4 addresses in the form a.b.c.d */
 static CC_INLINE cc_bool ParseIPv4Address(const cc_string* addr, cc_uint32* ip) {
@@ -409,6 +409,10 @@ cc_result Socket_CheckReadable(cc_socket s, cc_bool* readable) {
 
 cc_result Socket_CheckWritable(cc_socket s, cc_bool* writable) {
 	return ERR_NOT_SUPPORTED;
+}
+
+cc_result Socket_GetLastError(cc_socket s) {
+	return 0;
 }
 #endif
 

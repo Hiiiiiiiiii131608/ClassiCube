@@ -613,22 +613,18 @@ static cc_result Socket_Poll(cc_socket s, int mode, cc_bool* success) {
 }
 
 cc_result Socket_CheckReadable(cc_socket s, cc_bool* readable) {
-	//Platform_LogConst("POLL READ");
 	return Socket_Poll(s, SOCKET_POLL_READ, readable);
 }
 
-static int tries;
 cc_result Socket_CheckWritable(cc_socket s, cc_bool* writable) {
-	cc_result res = Socket_Poll(s, SOCKET_POLL_WRITE, writable);
-	//Platform_Log1("POLL WRITE: %i", &res);
-	if (res || *writable) return res;
+	return Socket_Poll(s, SOCKET_POLL_WRITE, writable);
+}
 
-	// INPROGRESS error code returned if connect is still in progress
-	res = GetSocketError(s);
-	Platform_Log1("POLL FAIL: %i", &res);
+cc_result Socket_GetLastError(cc_socket s) {
+	cc_result res = GetSocketError(s);
+	Platform_Log1("LAST ERROR: %i", &res);
+
 	if (res == EINPROGRESS) res = 0;
-	
-	if (tries++ > 20) { *writable = true; }
 	return res;
 }
 

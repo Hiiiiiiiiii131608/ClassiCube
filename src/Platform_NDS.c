@@ -2,6 +2,7 @@
 #if defined CC_BUILD_NDS
 #define CC_NO_UPDATER
 #define CC_NO_DYNLIB
+#define CC_NO_THREADING
 
 #define CC_XTEA_ENCRYPTION
 #include "_PlatformBase.h"
@@ -381,45 +382,6 @@ void Thread_Sleep(cc_uint32 milliseconds) {
 	swiDelay(8378 * milliseconds); // TODO probably wrong
 }
 
-void Thread_Run(void** handle, Thread_StartFunc func, int stackSize, const char* name) {
-	*handle = NULL;
-}
-
-void Thread_Detach(void* handle) {
-}
-
-void Thread_Join(void* handle) {
-}
-
-void* Mutex_Create(const char* name) {
-	return NULL;
-}
-
-void Mutex_Free(void* handle) {
-}
-
-void Mutex_Lock(void* handle) {
-}
-
-void Mutex_Unlock(void* handle) {
-}
-
-void* Waitable_Create(const char* name) {
-	return NULL;
-}
-
-void Waitable_Free(void* handle) {
-}
-
-void Waitable_Signal(void* handle) {
-}
-
-void Waitable_Wait(void* handle) {
-}
-
-void Waitable_WaitFor(void* handle, cc_uint32 milliseconds) {
-}
-
 
 /*########################################################################################################################*
 *---------------------------------------------------------Socket----------------------------------------------------------*
@@ -542,9 +504,11 @@ cc_result Socket_CheckReadable(cc_socket s, cc_bool* readable) {
 }
 
 cc_result Socket_CheckWritable(cc_socket s, cc_bool* writable) {
-	cc_result res  = Socket_Poll(s, SOCKET_POLL_WRITE, writable);
-	if (res || *writable) return res;
+	return Socket_Poll(s, SOCKET_POLL_WRITE, writable);
+}
 	
+cc_result Socket_GetLastError(cc_socket s) {
+	cc_result res;
 	/* https://stackoverflow.com/questions/29479953/so-error-value-after-successful-socket-operation */
 #ifdef BUILD_DSI
 	socklen_t resultSize = sizeof(socklen_t);
